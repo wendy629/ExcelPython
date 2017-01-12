@@ -25,12 +25,20 @@ import com.hyperion.aif.scripting.API as API
 
 #print glob.glob("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\*.xlsm")
 fdmAPI = API()
-fdmContext = fdmAPI.initContext(BigDecimal(15055))
-#fileoutw=open("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\CombinedTest.txt","w")
-fileout = fdmContext["INBOXDIR"]+"/DataFile.txt"
-fileoutw=open(fileout)
+conn = None
+conn = sql.DriverManager.getConnection("jdbc:oracle:thin:@192.168.4.244:1530:hd01", "FDMEE", "orahd01");
+conn.setAutoCommit(False)
+fdmAPI.initializeDevMode(conn);
+print "SUCCESS CONNECTING TO DB"
+fdmContext = fdmAPI.initContext(BigDecimal(15045))
+fileoutw=open("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\EDU_Full\\EDU101.txt","w")
+#fileout = fdmContext["INBOXDIR"]+"/EDU101.txt"
+print "======="
+print fileoutw
+print"========"
+#fileoutw=open(fileout)
 #filelist = [ "C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\HOSP-2016-PD12-0001 - 43158271 - MtM Op. Balances.xlsm","C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\HOSP-2016-PD12-0010 - 43666390 - BPS 646 Deep River Hospital.xlsm","C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\MOHLTC-OGOS-2016-ADJ1-0016 - IFIS 43560690 - CCO Retained Earnings GRE Redistribution.xlsm"]
-filelist = glob.glob("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\*.xlsm")
+filelist = glob.glob("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\EDU_Full\\files\\101\\*.xlsm")
 
 
 row_idx=0
@@ -47,7 +55,7 @@ for f in filelist:
   
   ee = XSSFExcelExtractor(wbin)
   ee.setFormulasNotResults(False)
-  ee.setIncludeSheetNames(False);
+  ee.setIncludeSheetNames(True);
 #----------Initialize End---------- 
 #----------Counting the No. of Columns Start----------
   colCount = 14 

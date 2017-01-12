@@ -12,7 +12,6 @@ path.append("C:\\Users\\ZhouW2\\Desktop\\ETL\\EclipseInstallation\\poi-ooxml-3.8
 import sys
 from org.apache.poi.xssf.usermodel import *
 from org.apache.poi.ss.usermodel import *
-from org.apache.poi.xssf.usermodel.XSSFTextRun import *
 from java.io import FileInputStream
 from org.apache.poi.xssf.extractor import *
 from org.apache.poi.xssf.extractor.XSSFEventBasedExcelExtractor import *
@@ -48,7 +47,6 @@ ee.setIncludeSheetNames(True);
 cellText=ee.getText()
 fileoutw.write(cellText.encode('utf8'))
 fileoutw.close()
-
 
 
 
@@ -193,5 +191,5 @@ for r in range(1, rowCount, 1):
       print "\n"            
     fileoutw.write("\n")
 '''
-
+fileouttxtw.close()
 

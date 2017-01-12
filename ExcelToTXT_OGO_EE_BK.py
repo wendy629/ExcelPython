@@ -52,7 +52,7 @@ fileoutw.close()
 
 fileintxt=fileout
 #fileouttxtw=open("C:\\Users\\ZhouW2\\Desktop\\ETL\\Prototype\\OGO Reporting Templates 2015-16_WendyCopy_OriginalTest_TBonly.txt","w")
-fileouttxtw=open("C:\\Users\\ZhouW2\\Desktop\\ETL\\Prototype\\OGO Reporting Templates 2015-16_WendyCopy_FormatBrush_TBonly.txt","w")
+fileouttxtw=open("C:\\Users\\ZhouW2\\Desktop\\ETL\\Prototype\\OGO Reporting Templates 2015-16_WendyCopy_FormatBrush_TBonly2.txt","w")
 #fileintxt="C:\\Users\\ZhouW2\\Desktop\\ETL\\Prototype\\rowcountertest.txt"
 
 '''
@@ -96,7 +96,7 @@ f = open(fileintxt, "rb")
 i = 0
 for line in f:
   i += 1
-  if (TBRow-1 < i):
+  if (TBRow-1 < i < lastRow-14):
     fileouttxtw.write(line)
 
 fileouttxtw.close()

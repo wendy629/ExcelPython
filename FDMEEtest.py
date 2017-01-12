@@ -1,6 +1,6 @@
 '''
 Created on Dec 20, 2016
-FromLocal
+
 @author: zhouwendy
 '''
 import sys

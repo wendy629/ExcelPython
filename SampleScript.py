@@ -1,10 +1,10 @@
 '''
 Created on Dec 20, 2016
-FromGithub
+
 @author: zhouwendy
 '''
 import sys
-
+import time
 import java.math.BigDecimal as BigDecimal
 import java.sql as sql
 import com.hyperion.aif.scripting.API as API
@@ -18,10 +18,29 @@ conn.setAutoCommit(False)
 fdmAPI.initializeDevMode(conn);
 print "SUCCESS CONNECTING TO DB"
 fdmContext = fdmAPI.initContext(BigDecimal(15045))
-
+print fdmContext
 print fdmContext["LOCNAME"]
 print fdmContext["LOCKEY"]
 print fdmContext["APPID"] 
+print fdmContext["RULEID"] 
+filename ="'LocnameDataFileNofdmContext.txt'"
+'''
+sql="update AIF_BALANCE_RULES set FILE_NAME_STATIC = 'CombinedTest_P1.txt' where RULE_ID = ?"
+
+params = [ fdmContext["RULEID"] ]
+print params
+fdmAPI.executeDML(sql,params,False)
+#fdmAPI.commitTransaction()
+sql.close()
+'''
+
+query = "UPDATE AIF_BALANCE_RULES SET FILE_NAME_STATIC = %s where RULE_ID = ?" % (filename) 
+params = [ fdmContext["RULEID"] ]
+print fdmAPI.executeDML(query, params, False)
+fdmAPI.commitTransaction()
+
+rd=fdmAPI.getRuleDetails(BigDecimal(414))
+
 
 if __name__ == '__main__':
     pass
