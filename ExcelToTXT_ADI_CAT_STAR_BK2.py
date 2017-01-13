@@ -116,8 +116,8 @@ for n,line in enumerate(f):
       fs = n+1
       listfs.append(fs)
       print "fs starts at : %d" % (fs)
-    if "Totals" in line: 
-      fe = n
+    if "FileEnds" in line: 
+      fe = n+1
       listfe.append(fe)
       print "fe ends at : %d" % (fe)
 

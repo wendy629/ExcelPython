@@ -116,8 +116,8 @@ for n,line in enumerate(f):
       fs = n+1
       listfs.append(fs)
       print "fs starts at : %d" % (fs)
-    if "Totals" in line: 
-      fe = n
+    if "FileEnds" in line: 
+      fe = n+1
       listfe.append(fe)
       print "fe ends at : %d" % (fe)
 
@@ -146,7 +146,6 @@ fileoutw.close() #test#
 
 
 f = open(fileout, "rb")
-fileoutfinalw=open(fileoutfinal,"w")#test
 for l in range (0,listoflen):
     f = open(fileout, "rb")
     print "l=%d" %l
@@ -155,14 +154,16 @@ for l in range (0,listoflen):
       cols=lines.split()
       #f = open(fileout, "rb")
       if (listfs[l] < m < listfe[l] ):
+        
         cols.insert(0, listcg[l])
-        print cols
-     
-        for i in cols:#test
-          fileoutfinalw.write(i+'\t')#test
-        fileoutfinalw.write("\n")
+        print cols #could be inserted to databse directly as it is comma dilimited?
+        
+        
+        #fileoutw=open(fileout,"w")#test
+        #for i in cols:#test
+         # fileoutw.write(i)#test
       #fileoutw.close()#test
-    #fileoutw.close()
+    fileoutw.close()
 #-------First Cleaning:add category------
 fileoutw.close()
 
