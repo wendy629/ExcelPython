@@ -109,8 +109,10 @@ f = open(fileout, "rb")
 
 listfs=[]
 listfe=[]
+listcg=[]
+listoflen=len(listfs)
 
-
+'''
 for n,line in enumerate(f):
     if "Upl" in line: 
       fs = n+1
@@ -121,29 +123,56 @@ for n,line in enumerate(f):
       listfe.append(fe)
       print "fe ends at : %d" % (fe)
 
-print listfs
-print listfe
 
-#-------First Cleaning:add category------
-
-
-#list1=list[0::2]
-#list2=list[1::2]
 f = open(fileout, "rb")
-listcg=[]
-listoflen=len(listfs)
+
 for m,lines in enumerate(f):
     cols = lines.split()
     #print "cols= %s" % (cols)
     for n, word in enumerate(cols):  
         #print "cols0= %s" % (cols[0])
-        if word in ['Category']:
+        if word in ['Redistribution','Statements']:
+            print(word,cols[n-1],cols[n-7]) 
+            listcg.append(word)
+'''
+for m,lines in enumerate(f):
+    cols = lines.split()
+    #print "cols= %s" % (cols)
+    for n, word in enumerate(cols):  
+        #print "cols0= %s" % (cols[0])
+        if word in ['Category'] and cols[n+7] in ['Redistribution','Statements']:
             print(word,cols[n+6],cols[n+7]) 
             listcg.append(cols[n+7])
+            
+            for x in range(m,m+99,1):
+              print x
+              if "Upl" in lines[m]: 
+                fs = x+1
+                listfs.append(fs)
+                print "fs starts at : %d" % (fs)
+              if "Totals" in lines[m]: 
+                fe = x
+                listfe.append(fe)
+                print "fe ends at : %d" % (fe) 
+            
+            
+            '''
+            listcg.append(word)
+            fs=m+10
+            listfs.append(fs)
+            print "fs starts at : %d" % (fs)
+            if "Totals" in range (m,m+rowCount): 
+              fe = m
+              listfe.append(fe)
+              print "fe ends at : %d" % (fe)
+            '''
+
+
 print listcg
+print listfs
+print listfe
 
 fileoutw.close() #test#
-
 
 f = open(fileout, "rb")
 fileoutfinalw=open(fileoutfinal,"w")#test

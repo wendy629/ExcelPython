@@ -110,7 +110,7 @@ f = open(fileout, "rb")
 listfs=[]
 listfe=[]
 
-
+print "ffffffffffffffffffffffffffffffffff = %s" %f
 for n,line in enumerate(f):
     if "Upl" in line: 
       fs = n+1

@@ -21,36 +21,14 @@ import com.hyperion.aif.scripting.API as API
 #----------Import Lib Pkg End----------
 
 #----------Initialize Start---------- 
-
-#filein = fdmContext["INBOXDIR"]+"/InputFile.txt"
-
-#print glob.glob("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\*.xlsm")
-'''
-fdmAPI = API()
-conn = None
-conn = sql.DriverManager.getConnection("jdbc:oracle:thin:@192.168.4.244:1530:hd01", "FDMEE", "orahd01");
-conn.setAutoCommit(False)
-fdmAPI.initializeDevMode(conn);
-print "SUCCESS CONNECTING TO DB"
-fdmContext = fdmAPI.initContext(BigDecimal(15045))
-
-'''
-fileout="C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\addCategory.txt"
+fileout="C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\EDU_Full\\DirtyData.txt"
 fileoutw=open(fileout,"w")
+fileoutfinal="C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\EDU_Full\\CleanData.txt"
 
-fileoutfinal="C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\final.txt"
-
-#fileout = fdmContext["INBOXDIR"]+"/EDU101.txt"
-print "======="
-print fileoutw
-print"========"
-#fileoutw=open(fileout)
 #filelist = [ "C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\HOSP-2016-PD12-0001 - 43158271 - MtM Op. Balances.xlsm","C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\HOSP-2016-PD12-0010 - 43666390 - BPS 646 Deep River Hospital.xlsm","C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\MOHLTC-OGOS-2016-ADJ1-0016 - IFIS 43560690 - CCO Retained Earnings GRE Redistribution.xlsm"]
-filelist = glob.glob("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\MOHLTC\\*.xlsm")
-
+filelist = glob.glob("C:\\Users\\ZhouW2\\Desktop\\ETL\\ADI\\SourceFileFrom3mins\\EDU_Full\\files\\101\\*.xlsm")
 
 row_idx=0
-
 for f in filelist:
   filein=f
   print filein
@@ -65,6 +43,7 @@ for f in filelist:
   ee.setFormulasNotResults(False)
   ee.setIncludeSheetNames(True);
 #----------Initialize End---------- 
+
 #----------Counting the No. of Columns Start----------
   colCount = 14 
   tmp = 0
@@ -104,6 +83,7 @@ for f in filelist:
       fileoutw.write("\nFileEnds\n") 
       row_idx=row_idx+rowCount
 #----------Paste text End----------
+
 fileoutw.close()
 f = open(fileout, "rb")
 
@@ -116,8 +96,8 @@ for n,line in enumerate(f):
       fs = n+1
       listfs.append(fs)
       print "fs starts at : %d" % (fs)
-    if "FileEnds" in line: 
-      fe = n+1
+    if "Totals" in line: 
+      fe = n
       listfe.append(fe)
       print "fe ends at : %d" % (fe)
 
@@ -156,7 +136,7 @@ for l in range (0,listoflen):
       #f = open(fileout, "rb")
       if (listfs[l] < m < listfe[l] ):
         cols.insert(0, listcg[l])
-        print cols
+        #print cols
      
         for i in cols:#test
           fileoutfinalw.write(i+'\t')#test
