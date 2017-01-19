@@ -4,6 +4,7 @@ import java.math.BigDecimal as BigDecimal
 import java.sql as sql
 import com.hyperion.aif.scripting.API as API
 
+
 print(sys.version)
 
 fdmAPI = API()
@@ -83,8 +84,9 @@ if pl == 'LOC_CONSBX_BPS' :
            if fileEntry.isFile():
                 sSQL = ""
                 file = folder.getAbsolutePath() + "\\" + fileEntry.getName()
-
                 fis = FileInputStream(file)
+
+
                 if fileEntry.getName().split(".")[-1]=='xlsm':
                 #  print 'yes'
                   wb = XSSFWorkbook(fis)
@@ -124,10 +126,13 @@ if pl == 'LOC_CONSBX_BPS' :
                     #print "Yes, FileType: %s" % cellft
                     row = sheet.getRow(rNum)
                     cell = row.getCell(1).toString().strip()
+
                     if 'Totals' in cell:
+                    #if cellDR == cellCR:
                     #if not cell:
                         break
 
+                    
                     insSQL = inspreSQL + " VALUES ('CONSBX', 'CAD', 'YTD', '" + prepare_str(row.getCell(10)) + "', " + "'" + prepare_str(str(fileEntry.getName())) + "' , "
                     
                     evaluator = wb.getCreationHelper().createFormulaEvaluator()
@@ -142,15 +147,28 @@ if pl == 'LOC_CONSBX_BPS' :
                     else:
                         insSQL = insSQL + "Null , "
                         cellValue = '0'
-                    
-                    formatter = DataFormatter()
-                    if 'Elimination' in fileEntry.getName():
-                      #print "FIND elimination"
+                        
+                    if fileEntry.getName()[:3] in ['453','463']:
+                      formatter = DataFormatter()
                       insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!Elimination' + "', '" + formatter.formatCellValue(row.getCell(2)) +'!'+ formatter.formatCellValue(row.getCell(3)) + "', "
                       insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(5)) + "', "
                       insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(6)) + "', '" + formatter.formatCellValue(row.getCell(7)) + "')"
                     #print "value: " + insSQL
+                    elif fileEntry.getName()[:3] in ['511']:
+                      formatter = DataFormatter()
+                      cellValue5=evaluator.evaluate(row.getCell(5))
+                      #print cellValue5
+                      string5=str(cellValue5.getStringValue())
+                      if string5 == 'None':
+                        string5 = '0000'
+                      #print string5
+                    
+                      insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!Elimination' + "', '" + formatter.formatCellValue(row.getCell(2)) +'!'+ formatter.formatCellValue(row.getCell(3)) + "', "
+                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + string5 + "', "
+                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(6)) + "', '" + formatter.formatCellValue(row.getCell(7)) + "')"
+                    #print "value: " + insSQL
                     else:
+                      formatter = DataFormatter()
                       #print "NO elimination"
                       insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!' + formatter.formatCellValue(rowft.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(2)) +'!'+ formatter.formatCellValue(row.getCell(3)) + "', "
                       insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(5)) + "', "
@@ -164,11 +182,12 @@ if pl == 'LOC_CONSBX_BPS' :
                         #print sSQL
                     rNum = rNum + 1
                 
-                
+
+
                 #fdmAPI.executeDML(sSQL, [], True)
                 #fdmAPI.executeDML('INSERT ALL '+ sSQL + 'select * from dual;', [], True)
                 print "sql statement:" + 'INSERT ALL'+ sSQL + 'select * from dual;'
-                print "##########"
+                #print "##########"
                 #fdmAPI.commitTransaction()
                 fis.close()
 
@@ -186,7 +205,7 @@ if pl == 'LOC_CONSBX_BPS' :
 
 #print "fl is %s" % fl
 #print "newFl is %s" % newFl
-print "ADI file load End"
+    print "ADI file load End"
 
 if pl == 'LOC_CONSBX_ENTITY':
 
@@ -294,5 +313,5 @@ if pl == 'LOC_CONSBX_ENTITY':
 
 #print "fl is %s" % fl
 #print "newFl is %s" % newFl
-print "OGO file load End"
+    print "OGO file load End"
 
