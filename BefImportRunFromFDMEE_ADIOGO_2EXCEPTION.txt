@@ -1,0 +1,135 @@
+import sys
+
+locname=fdmContext["LOCNAME"]
+
+def prepare_str(val):
+    if val:
+        if type(val) is str or type(val) is unicode:
+            return val.strip().replace("'", "''")[:74]
+        else:
+            return val.toString().strip().replace("'", "''")[:74]
+    return 'Null'
+
+RSet = fdmAPI.executeQuery("SELECT nvl(b.PARTNAME, a.PARTNAME) PartLocation FROM TPOVPARTITION a left join TPOVPARTITION b ON a.partparentkey=b.PARTITIONKEY WHERE a.PARTNAME = '"+locname+"'", []) 
+
+if RSet.next(): pl = RSet.getString('PartLocation')
+
+if pl == 'LOC_CONSBX_BPS' :
+#if fdmContext["TARGETAPPNAME"] == 'CONSOLSBX':
+
+    try:
+	
+        path = 'C:\hyp\EPMSystem11R1\products\FinancialDataQuality\lib'
+        sys.path.append(path + '\poi-3.15.jar')
+        sys.path.append(path + '\poi-ooxml-3.15.jar')
+        sys.path.append(path + '\poi-ooxml-schemas-3.15.jar')
+
+        import org.apache.poi.xssf.usermodel.XSSFWorkbook as XSSFWorkbook
+        import org.apache.poi.xssf.usermodel.XSSFSheet as XSSFSheet
+        import org.apache.poi.xssf.usermodel.XSSFRow as XSSFRow
+        import org.apache.poi.xssf.usermodel.XSSFCell as XSSFCell
+        import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator as XSSFFormulaEvaluator
+        import org.apache.poi.hssf.usermodel.HSSFWorkbook as HSSFWorkbook
+        import org.apache.poi.hssf.usermodel.HSSFSheet as HSSFSheet
+        import org.apache.poi.hssf.usermodel.HSSFRow as HSSFRow
+        import org.apache.poi.hssf.usermodel.HSSFCell as HSSFCell
+        import org.apache.poi.hssf.usermodel.HSSFFormulaEvaluator as HSSFFormulaEvaluator
+        from java.io import FileInputStream
+        from org.apache.poi.ss.usermodel import *
+        from datetime import datetime
+        import java.io as io
+
+        folder = io.File(fdmContext["INBOXDIR"]+"\\"+fdmContext["LOCNAME"])
+        #copyFolder = io.File(folder.getAbsolutePath()+ "\\" + datetime.now().strftime('%Y%m%d_%H%M%S'))
+        #copyFolder.mkdir()
+
+        delSQL = "DELETE FROM AIF_OPEN_INTERFACE WHERE BATCH_NAME = 'CONSBX'"
+        fdmAPI.executeDML(delSQL, [], True)
+        fdmAPI.commitTransaction()
+
+        inspreSQL = " INTO AIF_OPEN_INTERFACE (BATCH_NAME, CURRENCY, DATAVIEW, DESC1, DESC2, AMOUNT, COL01, COL02, COL03, COL04, COL05, COL06)"
+        for fileEntry in folder.listFiles():
+           if fileEntry.isFile():
+                sSQL = ""
+                file = folder.getAbsolutePath() + "\\" + fileEntry.getName()
+                fis = FileInputStream(file)
+                
+                if fileEntry.getName().split(".")[-1]=='xlsm':
+                #  print 'yes'
+                  wb = XSSFWorkbook(fis)
+                  sheetob1=wb.getSheetAt(1)
+                  sheetob2=wb.getSheetAt(2)
+                #print sheetob1
+                  sheetname1 = sheetob1.getSheetName()
+                  sheetname2 = sheetob2.getSheetName()
+                #print "sheetname1=%s" % sheetname1
+                #print "sheetname2=%s" % sheetname2
+                  if sheetname1=='Sheet1':
+                    sheet = wb.getSheet(sheetname1)
+                  #print "sheet 1 wins"
+                  else:
+                    sheet = wb.getSheet(sheetname2)
+                  #print "sheet 2 wins"
+                else:
+                  wb = HSSFWorkbook(fis)
+                  sheet = wb.getSheet('Sheet1')
+                
+                rows = sheet.getPhysicalNumberOfRows()
+                
+                rNum = 19
+                
+                rowft = sheet.getRow(7)
+                cellft = rowft.getCell(4).toString().strip()
+                
+                while True:
+                    row = sheet.getRow(rNum)
+                    #cell = row.getCell(2).toString().strip()
+                    cell = row.getCell(1).toString().strip()
+
+                    #if not cell:
+                    if 'Totals' in cell:
+                        break
+
+                    insSQL = inspreSQL + " VALUES ('CONSBX', 'CAD', 'YTD', '" + prepare_str(row.getCell(10)) + "', " + "'" + prepare_str(str(fileEntry.getName())) + "' , "
+
+                    evaluator = wb.getCreationHelper().createFormulaEvaluator()
+                    if row.getCell(8) and row.getCell(8).toString().strip(): 
+                        cellValue = evaluator.evaluate(row.getCell(8))
+                        insSQL = insSQL + str(cellValue.getNumberValue()) + ", "
+                    elif row.getCell(9) and row.getCell(9).toString().strip(): 
+                        cellValue = evaluator.evaluate(row.getCell(9))
+                        insSQL = insSQL + str(cellValue.getNumberValue()) + ", "
+                    else:
+                        insSQL = insSQL + "Null , "
+                        cellValue = '0'
+
+                    formatter = DataFormatter()
+                    insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!'+ formatter.formatCellValue(rowft.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(3)) + "', "
+                    insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(5)) + "', "
+                    insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(6)) + "', '" + formatter.formatCellValue(row.getCell(7)) + "')"
+		
+                    if cellValue != '0' and cellValue.getNumberValue() != 0 : 
+                        #sSQL = sSQL + insSQL
+                        sSQL = sSQL + insSQL
+                        #fdmAPI.executeDML(insSQL, [], True)
+                        #fdmAPI.commitTransaction()
+                    rNum = rNum + 1
+
+                fdmAPI.executeDML('INSERT ALL'+ sSQL + 'select * from dual', [], True)
+                #fdmAPI.executeDML(sSQL, [], True)
+                fdmAPI.commitTransaction()
+                fis.close()
+
+                ##fl = io.File(folder.getAbsolutePath() + "\\" + fileEntry.getName())
+                #fl = io.File(fdmContext["INBOXDIR"]+"\\"+fdmContext["LOCNAME"]+ "\\" + fileEntry.getName())
+                #newFl = io.File(copyFolder.getAbsolutePath() + "\\" + fileEntry.getName())
+                #fl.renameTo(newFl)
+
+    except:
+	
+        fdmAPI.logError("BefImport. Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
+        fdmAPI.logError("SQLSTATEMENT: %s " % ('INSERT ALL '+ sSQL + 'select * from dual;'))
+        fdmAPI.logError("sSQL: %s " % (sSQL))
+        fdmAPI.logError("filename: %s " % (fileEntry.getName()))
+        fdmAPI.logError("insSQL: %s " % (insSQL))
+        raise
