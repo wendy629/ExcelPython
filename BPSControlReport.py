@@ -20,7 +20,7 @@ from org.apache.poi.xssf.extractor import *
 from org.apache.poi.xssf.extractor.XSSFEventBasedExcelExtractor import *
         
         #Create a folder with time stamp
-folder = io.File("C:edutest")
+folder = io.File("C:hos")
 print "folder path is: %s" % folder
 
 for fileEntry in folder.listFiles():

@@ -13,7 +13,7 @@ conn = sql.DriverManager.getConnection("jdbc:oracle:thin:@192.168.4.244:1530:hd0
 conn.setAutoCommit(False)
 fdmAPI.initializeDevMode(conn);
 print "SUCCESS CONNECTING TO DB"
-fdmContext = fdmAPI.initContext(BigDecimal(15185))
+fdmContext = fdmAPI.initContext(BigDecimal(15447))
 print fdmContext
 print fdmContext["LOCNAME"]
 print fdmContext["LOCKEY"]
@@ -66,13 +66,16 @@ if pl == 'LOC_CONSBX_BPS' :
         import java.io as io
         
         #Create a folder with time stamp
+        
         if locname[-3:]=="EDU" and pername =="Mar":
           folder = io.File("C:Mar")
         elif locname[-3:]=="EDU" and pername =="Aug":
           folder = io.File("C:Aug")
         else:
         #  folder = io.File("C:Aug")
-          folder = io.File("C:tcu")
+          folder = io.File("C:TCUBF")
+        
+        #folder = io.File("C:hos")
         #print "folder path is: %s" % folder
         #copyFolder = io.File(folder.getAbsolutePath()+ "\\" + datetime.now().strftime('%Y%m%d_%H%M%S'))
         #print "folder with timestamp locates at: %s" % copyFolder
@@ -156,12 +159,7 @@ if pl == 'LOC_CONSBX_BPS' :
                         insSQL = insSQL + "Null , "
                         cellValue = '0'
                         
-                    if fileEntry.getName()[:7] in ['453-EDU','463-EDU']:
-                      formatter = DataFormatter()
-                      insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!Elimination' + "', '" + formatter.formatCellValue(row.getCell(2)) +'!'+ formatter.formatCellValue(row.getCell(3)) + "', "
-                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(5)) + "', "
-                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(6)) + "', '" + formatter.formatCellValue(row.getCell(7)) + "')"
-                    #print "value: " + insSQL
+                    '''
                     elif fileEntry.getName()[:8] in ['511A-EDU']:
                       formatter = DataFormatter()
                       cellValue5=evaluator.evaluate(row.getCell(5))
@@ -175,8 +173,22 @@ if pl == 'LOC_CONSBX_BPS' :
                       insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + string5 + "', "
                       insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(6)) + "', '" + formatter.formatCellValue(row.getCell(7)) + "')"
                     #print "value: " + insSQL
+                    '''
+                      
+                    formatter = DataFormatter()
+                    
+                    if fileEntry.getName()[:7] in ['453-EDU','463-EDU','711-EDU']:
+                      
+                      insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!Elimination' + "', '" + formatter.formatCellValue(row.getCell(2)) +'!'+ formatter.formatCellValue(row.getCell(3)) + "', "
+                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(5)) + "', "
+                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(6)) + "', '" + formatter.formatCellValue(row.getCell(7)) + "')"
+                    elif fileEntry.getName()[:7] in ['201-EDU','202-EDU','101-EDU']:
+                      
+                      insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!BOG Adjustment' + "', '" + formatter.formatCellValue(row.getCell(2)) +'!'+ formatter.formatCellValue(row.getCell(3)) + "', "
+                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(5)) + "', "
+                      insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(6)) + "', '" + formatter.formatCellValue(row.getCell(7)) + "')"
                     else:
-                      formatter = DataFormatter()
+                      
                       #print "NO elimination"
                       insSQL = insSQL + "'" + fdmContext["LOCNAME"] + '!' + formatter.formatCellValue(rowft.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(2)) +'!'+ formatter.formatCellValue(row.getCell(3)) + "', "
                       insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(4)) + "', '" + formatter.formatCellValue(row.getCell(5)) + "', "
@@ -184,6 +196,7 @@ if pl == 'LOC_CONSBX_BPS' :
                     
     
                     if cellValue != '0' and cellValue.getNumberValue() != 0 : 
+                        insSQL= insSQL.encode('utf8')
                         sSQL = sSQL + insSQL
                         #sSQL = sSQL + insSQL + ';' + '\n'
                         #fdmAPI.executeDML(insSQL, [], True)
@@ -194,7 +207,7 @@ if pl == 'LOC_CONSBX_BPS' :
 
                 #fdmAPI.executeDML(sSQL, [], True)
                 #fdmAPI.executeDML('INSERT ALL '+ sSQL + 'select * from dual;', [], True)
-                #print "sql statement:" + 'INSERT ALL'+ sSQL + 'select * from dual;'
+                print "sql statement:" + 'INSERT ALL'+ sSQL + 'select * from dual;'
                 #print "##########"
                 #fdmAPI.commitTransaction()
                 fis.close()
