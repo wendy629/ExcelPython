@@ -1,0 +1,121 @@
+if locname == 'LOC_CONSBX_OIA_267' :
+    try:
+	
+        path = 'C:\hyp\EPMSystem11R1\products\FinancialDataQuality\lib'
+        sys.path.append(path + '\poi-3.15.jar')
+        sys.path.append(path + '\poi-ooxml-3.15.jar')
+        sys.path.append(path + '\poi-ooxml-schemas-3.15.jar')
+
+        import org.apache.poi.xssf.usermodel.XSSFWorkbook as XSSFWorkbook
+        import org.apache.poi.xssf.usermodel.XSSFSheet as XSSFSheet
+        import org.apache.poi.xssf.usermodel.XSSFRow as XSSFRow
+        import org.apache.poi.xssf.usermodel.XSSFCell as XSSFCell
+        import org.apache.poi.xssf.usermodel.XSSFFormulaEvaluator as XSSFFormulaEvaluator
+        import org.apache.poi.hssf.usermodel.HSSFWorkbook as HSSFWorkbook
+        import org.apache.poi.hssf.usermodel.HSSFSheet as HSSFSheet
+        import org.apache.poi.hssf.usermodel.HSSFRow as HSSFRow
+        import org.apache.poi.hssf.usermodel.HSSFCell as HSSFCell
+        import org.apache.poi.hssf.usermodel.HSSFFormulaEvaluator as HSSFFormulaEvaluator
+        from java.io import FileInputStream
+        from org.apache.poi.ss.usermodel import *
+        from datetime import datetime
+        import java.io as io
+
+        
+        
+        folder = io.File(fdmContext["INBOXDIR"]+"\\"+fdmContext["LOCNAME"])
+
+        delSQL = "DELETE FROM AIF_OPEN_INTERFACE WHERE BATCH_NAME = 'CONSBXOGO'"
+        fdmAPI.executeDML(delSQL, [], True)
+        fdmAPI.commitTransaction()
+
+        inspreSQL = " INTO AIF_OPEN_INTERFACE (BATCH_NAME, CURRENCY, DATAVIEW, DESC1, DESC2, AMOUNT, COL01, COL02, COL03)"
+        #inspreSQL = "INSERT INTO AIF_OPEN_INTERFACE (BATCH_NAME, CURRENCY, DATAVIEW, DESC1, DESC2, AMOUNT, COL01, COL02, COL03)"
+        
+        for fileEntry in folder.listFiles():
+           if fileEntry.isFile():
+                sSQL = ""
+                file = folder.getAbsolutePath() + "\\" + fileEntry.getName()
+                fis = FileInputStream(file)
+
+                wb = XSSFWorkbook(fis)
+                sheet = wb.getSheet('TB')
+               
+                rows = sheet.getPhysicalNumberOfRows()
+                rNum = 5
+                
+                while True:
+                    row = sheet.getRow(rNum)
+                    cell = row.getCell(0).toString().strip()
+                    
+                    insSQL = inspreSQL + " VALUES ('CONSBXOGO', 'CAD', 'YTD', '" + prepare_str(row.getCell(0)) + "', " + "'" + prepare_str(str(fileEntry.getName())) + "' , "
+                    
+                    evaluator = wb.getCreationHelper().createFormulaEvaluator()
+                    if row.getCell(0) and row.getCell(0).toString().strip(): 
+                        cell0Value = evaluator.evaluate(row.getCell(0))
+                        #str(cell0Value.getStringValue())
+
+                    
+                    #AMOUNT
+                    evaluator = wb.getCreationHelper().createFormulaEvaluator()
+                    if row.getCell(16) and row.getCell(16).toString().strip() and str(cell0Value.getStringValue()) not in ["REVENUE","EXPENSES","ASSETS   ","LIABILITIES","EQUITY"]: 
+                        cellValue = evaluator.evaluate(row.getCell(16))
+                        insSQL = insSQL + str(cellValue.getNumberValue()) + ", "
+                    else:
+                        insSQL = insSQL + "Null , "
+                        cellValue = '0'
+                   
+                    #ACCOUNT
+                    evaluator = wb.getCreationHelper().createFormulaEvaluator()
+                    if row.getCell(11) and row.getCell(11).toString().strip()and str(cell0Value.getStringValue()) not in ["REVENUE","EXPENSES","ASSETS   ","LIABILITIES","EQUITY"]: 
+                        cellAValue = evaluator.evaluate(row.getCell(11))
+                        if str(cellAValue.getStringValue())!='None':
+                            insSQL = insSQL + "'" +  str(cellAValue.getStringValue()) + "'" + ", "
+                        else:
+                            formatter = DataFormatter()
+                            insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(11)) + "', " 
+                            
+                    #MVM       
+                    if row.getCell(13) and row.getCell(13).toString().strip()and str(cell0Value.getStringValue()) not in ["REVENUE","EXPENSES","ASSETS   ","LIABILITIES","EQUITY"]: 
+                        cellMValue = evaluator.evaluate(row.getCell(13))
+                        if str(cellMValue.getStringValue())!='None':
+                            insSQL = insSQL + "'" +  str(cellMValue.getStringValue()) + "'" + ", "
+                    else:
+                        formatter = DataFormatter()
+                        #insSQL = insSQL + "'" + formatter.formatCellValue(row.getCell(13)) + "', " 
+                        insSQL = insSQL +"'[None]'"+","
+                    
+                    #ICP
+                    if row.getCell(14) and row.getCell(14).toString().strip()and str(cell0Value.getStringValue()) not in ["REVENUE","EXPENSES","ASSETS   ","LIABILITIES","EQUITY"]: 
+                        
+                        cellIValue = evaluator.evaluate(row.getCell(14))
+                        formatter = DataFormatter()
+                        insSQL = insSQL + "'" + str(cellIValue.getStringValue()) + "'" + ") "
+
+                    else:
+                        insSQL = insSQL +"'[ICP None]'"+")"
+
+                        
+                    if cellValue != '0' and cellValue.getNumberValue() != 0 : 
+                        insSQL= insSQL.encode('utf8')
+                        #print insSQL
+                        sSQL = sSQL + insSQL
+
+                    rNum = rNum + 1
+                    
+                    if 'Amounts realized and recognized to the Statement of Operations' in cell:
+                        break
+
+                fdmAPI.executeDML('INSERT /*+ APPEND */ ALL'+ sSQL + 'select * from dual', [], True)
+                fdmAPI.commitTransaction()
+                fis.close()
+
+
+    except:
+	
+        fdmAPI.logError("BefImport. Error: %s %s" % (sys.exc_info()[0], sys.exc_info()[1]))
+        fdmAPI.logError("SQLSTATEMENT: %s " % ('INSERT ALL '+ sSQL + 'select * from dual;'))
+        fdmAPI.logError("sSQL: %s " % (sSQL))
+        fdmAPI.logError("filename: %s " % (fileEntry.getName()))
+        fdmAPI.logError("insSQL: %s " % (insSQL))
+        raise
